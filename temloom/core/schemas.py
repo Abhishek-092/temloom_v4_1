@@ -267,7 +267,7 @@ class Schema15RemediationOutcome(BaseModel):
 
 
 class StructuredIncidentContext(BaseModel):
-    """Unified Stage 6 Incident Context Packet (uniting Schemas 10, 13, 14, 15 & Aether ACP fields)."""
+    """Unified Stage 6 Incident Context Packet (uniting Schemas 10, 13, 14, 15)."""
     incident_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     bucket_15s_utc_ms: int
     timestamp_iso: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
