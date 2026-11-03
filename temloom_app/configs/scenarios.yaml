@@ -1,0 +1,183 @@
+# TEMLOOM Reproducible Telemetry & Fault Scenario Definitions (Scenarios A through L + S1 Family)
+schema_version: "2.0.0"
+dt_seconds: 15.0                # 15-second telemetry polling interval (4 samples/min)
+duration_minutes: 40.0          # 40-minute scenario duration (160 time steps per run)
+bottleneck_capacity_mbps: 100.0 # Primary MPLS underlay link capacity (p-core1:eth1 -> pe-hub1:eth1)
+backup_capacity_mbps: 100.0     # Secondary MPLS underlay link capacity (p-backup1:eth2 -> pe-hub1:eth2)
+
+sla_thresholds:
+  util_mbps: 95.0               # Sustained utilization SLA breach ceiling (95% of 100 Mbps)
+  latency_ms: 30.0              # One-way overlay tunnel latency SLA ceiling (baseline = 8.0 ms)
+  loss_pct: 1.0                 # Overlay packet loss SLA ceiling (%)
+  queue_drops_pps: 25.0         # Sustained HTB/QoS tail drop rate indicating service degradation
+  min_sustained_steps: 3        # Must breach for >= 3 consecutive steps (45s) to count as a true SLA violation
+
+scenarios:
+  Scenario_A_Gradual_Congestion:
+    code: "A"
+    name: "Gradual Congestion Ramp"
+    event_start_min: 10.0
+    event_type: "progressive_congestion"
+    expects_sla_violation: true
+    expected_response: "WARN_AND_STEER_BULK"
+    description: "Bottleneck MPLS link utilization ramps linearly at +2.3 Mbps/min from 50 Mbps baseline toward 95 Mbps SLA breach."
+    params:
+      base_util_mbps: 50.0
+      ramp_rate_mbps_per_min: 2.3
+      ef_share: 0.20
+
+  Scenario_B_Sudden_Traffic_Burst:
+    code: "B"
+    name: "Sudden Ephemeral Traffic Burst"
+    event_start_min: 15.0
+    event_type: "ephemeral_burst"
+    expects_sla_violation: false
+    expected_response: "SUPPRESS_TRANSIENT"
+    description: "Utilization spikes sharply from 52 Mbps to 91 Mbps for 30 seconds (2 polls) due to a microburst, then returns to 52 Mbps without breaching sustained SLA."
+    params:
+      base_util_mbps: 52.0
+      burst_delta_mbps: 39.0
+      burst_duration_min: 0.50
+      ef_share: 0.20
+
+  Scenario_C_Temporary_Congestion:
+    code: "C"
+    name: "Short-Lived Temporary Congestion"
+    event_start_min: 14.0
+    event_type: "temporary_congestion"
+    expects_sla_violation: false
+    expected_response: "MONITOR_NO_REROUTE"
+    description: "Traffic rises to 87 Mbps for 3.5 minutes (below the 95 Mbps SLA breach ceiling with zero EF loss) and subsides naturally."
+    params:
+      base_util_mbps: 54.0
+      plateau_util_mbps: 87.5
+      duration_min: 3.5
+      ef_share: 0.22
+
+  Scenario_D_Routing_Change:
+    code: "D"
+    name: "IGP/BGP Routing Failover Overload"
+    event_start_min: 12.0
+    event_type: "routing_change_overload"
+    expects_sla_violation: true
+    expected_response: "WARN_IMMEDIATE_ROUTE_OVERLOAD"
+    description: "An adjacent link metric change shifts +36 Mbps of branch traffic onto p-core1:eth1 at t=12m, followed by +1.5 Mbps/min drift across the 95 Mbps SLA threshold."
+    params:
+      base_util_mbps: 52.0
+      step_shift_mbps: 36.0
+      post_shift_ramp_mbps_per_min: 1.5
+      ef_share: 0.25
+
+  Scenario_E_Packet_Loss_Queue_Drops:
+    code: "E"
+    name: "Early QoS Policer Queue Drops & Micro-Loss"
+    event_start_min: 10.0
+    event_type: "queue_drop_degradation"
+    expects_sla_violation: true
+    expected_response: "WARN_QOS_QUEUE_EXHAUSTION"
+    description: "Misconfigured burst buffer / shallow queue causes tail drops and >1% packet loss starting while nominal link utilization is only 74-82 Mbps."
+    params:
+      base_util_mbps: 55.0
+      ramp_rate_mbps_per_min: 1.4
+      early_drop_threshold_mbps: 72.0
+      ef_share: 0.25
+
+  Scenario_F_Latency_Degradation:
+    code: "F"
+    name: "Underlay Latency Drift Without Bandwidth Saturation"
+    event_start_min: 10.0
+    event_type: "latency_path_stretch"
+    expects_sla_violation: true
+    expected_response: "WARN_LATENCY_SLA_BREACH"
+    description: "Optical FEC / L2 microwave path reroute causes one-way latency to drift from 8 ms to 36 ms (>30 ms SLA) while utilization remains flat at 56 Mbps."
+    params:
+      base_util_mbps: 56.0
+      latency_drift_ms_per_min: 1.65
+      ef_share: 0.30
+
+  Scenario_G_Multiple_Simultaneous_Faults:
+    code: "G"
+    name: "Simultaneous Underlay Congestion + Branch ACL/Link Fault"
+    event_start_min: 10.0
+    event_type: "dual_simultaneous_fault"
+    expects_sla_violation: true
+    expected_response: "WARN_MULTI_FAULT_ISOLATION"
+    description: "Shared underlay p-core1:eth1 ramps toward congestion while ce-branch3 simultaneously suffers a local WAN interface error/loss fault."
+    params:
+      base_util_mbps: 52.0
+      ramp_rate_mbps_per_min: 2.2
+      secondary_fault_start_min: 11.5
+      ef_share: 0.20
+
+  Scenario_H_Telemetry_Noise_Missing_Data:
+    code: "H"
+    name: "Congestion Ramp Under 15% Missing Polls & Counter Outliers"
+    event_start_min: 10.0
+    event_type: "noisy_missing_congestion"
+    expects_sla_violation: true
+    expected_response: "WARN_WITH_DEGRADED_CONFIDENCE"
+    description: "Underlying traffic ramps at +2.1 Mbps/min toward SLA breach, but telemetry suffers 15% random packet drop, 2-step jitter delays, and 3% single-poll counter spikes."
+    params:
+      base_util_mbps: 51.0
+      ramp_rate_mbps_per_min: 2.1
+      missing_prob: 0.15
+      outlier_prob: 0.03
+      outlier_scale_mbps: 28.0
+      ef_share: 0.20
+
+  Scenario_I_Regime_Change:
+    code: "I"
+    name: "Step-Function Normal Baseline Regime Shift"
+    event_start_min: 10.0
+    event_type: "benign_regime_shift"
+    expects_sla_violation: false
+    expected_response: "RECALIBRATE_NO_ALARM"
+    description: "Scheduled batch shift moves normal baseline utilization from 42 Mbps to 68 Mbps (well below 95 Mbps SLA, stable latency/loss) and remains flat."
+    params:
+      base_util_mbps: 42.0
+      new_regime_util_mbps: 68.0
+      ef_share: 0.18
+
+  Scenario_J_Benign_High_Utilization:
+    code: "J"
+    name: "Benign High Utilization With Protected QoS"
+    event_start_min: 8.0
+    event_type: "benign_high_utilization"
+    expects_sla_violation: false
+    expected_response: "SUPPRESS_QOS_PROTECTED"
+    description: "Link runs at 86-89 Mbps due to elastic scavenger/bulk transfers, but strict-priority EF share is only 8%, queue drops are 0, and latency is stable (<12 ms)."
+    params:
+      base_util_mbps: 62.0
+      high_plateau_mbps: 88.0
+      ef_share: 0.08
+
+  Scenario_K_Gradual_Degradation_Recovery:
+    code: "K"
+    name: "Gradual Congestion Ramp Followed by Self-Recovery"
+    event_start_min: 10.0
+    event_type: "ramp_then_recovery"
+    expects_sla_violation: false
+    expected_response: "CLEAR_WARNING_ON_RECOVERY"
+    description: "Utilization climbs at +2.0 Mbps/min from 50 Mbps to 79 Mbps over 14.5 minutes, plateaus for 2 minutes, and recovers back to 52 Mbps without breaching 95 Mbps."
+    params:
+      base_util_mbps: 50.0
+      ramp_rate_mbps_per_min: 2.0
+      peak_util_mbps: 79.0
+      ef_share: 0.20
+
+  Scenario_L_Combined_Complex_Fault:
+    code: "L"
+    name: "Combined Routing Shift + Traffic Growth + Telemetry Noise + Constrained Backup"
+    event_start_min: 10.0
+    event_type: "combined_complex_fault"
+    expects_sla_violation: true
+    expected_response: "WARN_AND_VERIFY_BACKUP_HEADROOM"
+    description: "Combines a +18 Mbps routing shift at t=10m, a +1.6 Mbps/min traffic ramp, 10% missing telemetry, and elevated 68 Mbps load on the backup link."
+    params:
+      base_util_mbps: 54.0
+      step_shift_mbps: 18.0
+      ramp_rate_mbps_per_min: 1.6
+      missing_prob: 0.10
+      outlier_prob: 0.02
+      backup_base_util_mbps: 68.0
+      ef_share: 0.24
