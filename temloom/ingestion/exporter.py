@@ -23,7 +23,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 PORT = 8000
 # Lab name comes from the LAB env var so the exporter targets the same
-# Containerlab topology the rest of the stack uses (default: aether). Falls back
+# Containerlab topology the rest of the stack uses (default: temloom). Falls back
 # to the legacy LAB_NAME var for compatibility.
 LAB_NAME = os.environ.get("LAB", os.environ.get("LAB_NAME", "temloom"))
 NODES = ["pe1", "p1", "pe2", "ce-branch1", "ce-branch2", "ce-hub", "ce-dc"]
