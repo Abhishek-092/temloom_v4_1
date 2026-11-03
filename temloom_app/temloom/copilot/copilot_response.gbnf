@@ -1,0 +1,9 @@
+root ::= "{" ws
+  "\"q1_what_fails_and_when\":" ws string "," ws
+  "\"q2_why_risk_elevated\":" ws string "," ws
+  "\"q3_validated_corrective_action\":" ws string "," ws
+  "\"citations\":" ws "[" ws string ("," ws string)* ws "]" "," ws
+  "\"epistemic_state\":" ws string
+"}" ws
+string ::= "\"" ([^"\\] | "\\" .)* "\""
+ws ::= [ \t\n]*
