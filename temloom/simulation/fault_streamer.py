@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 temloom/simulation/fault_streamer.py — Natural Fault-Timing State Machine
-(QUIET -> FAULT_BURST -> RESOLVE) adopted from Project Aether (DS-1.1E) and wired
+(QUIET -> FAULT_BURST -> RESOLVE)
 into TEMLOOM's Quad-Domain Core Engine, Digital Twin, 4-Layer DAG RCA, and DB.
 """
 
