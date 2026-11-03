@@ -1,0 +1,45 @@
+{
+  "additional_model_zoo_120_runs": {
+    "Prophet-Style Fourier + Piecewise Linear Trend": {
+      "recall": 0.9143,
+      "false_alarms_per_hour": 6.3625,
+      "precision": 0.1117,
+      "median_lead_time_min": 15.625,
+      "ttv_mae_min": 7.302,
+      "strict_10m_coverage": 0.036,
+      "latency_ms_per_step": 0.1037
+    },
+    "Recurrent Gated Sequence Model (LSTM-Style)": {
+      "recall": 1.0,
+      "false_alarms_per_hour": 0.5875,
+      "precision": 0.5983,
+      "median_lead_time_min": 8.375,
+      "ttv_mae_min": 2.766,
+      "strict_10m_coverage": 0.632,
+      "latency_ms_per_step": 0.196
+    },
+    "Isolation Forest Multivariate Anomaly Detector": {
+      "recall": 0.0,
+      "false_alarms_per_hour": 0.0,
+      "precision": 0.0,
+      "median_lead_time_min": 0.0,
+      "ttv_mae_min": NaN,
+      "strict_10m_coverage": 0.648,
+      "latency_ms_per_step": 0.2345
+    }
+  },
+  "scenario_d_validation": {
+    "scenario": "Scenario_D_SDWAN_Controller_Policy_Drift",
+    "fault_injected_at_min": 10.0,
+    "policy_drift_detected_at_min": 10.5,
+    "voip_sla_breach_onset_at_min": 15.25,
+    "prediction_lead_time_min": 4.75,
+    "predicted_tti_min": 4.5,
+    "tti_mae_min": 0.25,
+    "rca_top1_entity": "sdwan_controller:policy:AAR-VOICE-GOLD (v14-misconfig)",
+    "rca_top1_accurate": true,
+    "recommended_remediation": "Rollback controller policy AAR-VOICE-GOLD to golden hash sha256:8f9d2a1c4b7e6051 via 2PC",
+    "post_rollback_voip_jitter_ms": 1.95,
+    "remediation_verified_outcome": "CONFIRMED_OUTCOME"
+  }
+}
