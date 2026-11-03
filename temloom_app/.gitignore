@@ -1,0 +1,158 @@
+# =============================================================================
+# TEMLOOM v4.1 — Git ignore rules
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Cryptographic Private Keys & Secrets
+#    Public verification keys (*.pub.pem) and signature manifests ARE committed.
+# -----------------------------------------------------------------------------
+keys/*
+!keys/*.pub.pem
+!keys/*.pub.json
+!keys/README.md
+
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.secret
+secrets/
+
+# -----------------------------------------------------------------------------
+# 2. Python Bytecode, Virtual Environments & Packaging Caches
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.ipynb_checkpoints/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Test, linter & type-checker caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# -----------------------------------------------------------------------------
+# 3. Runtime Logs, PIDs, UNIX Sockets & Local Databases
+# -----------------------------------------------------------------------------
+logs/
+*.log
+*.pid
+*.sock
+nohup.out
+*.out
+
+# Local SQLite / Chroma / VictoriaMetrics / PostgreSQL data directories
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+chroma_db/
+phase4-llm/chroma_db/
+vmdata/
+pgdata/
+victoria-metrics-data/
+
+# -----------------------------------------------------------------------------
+# 4. Large Offline AI/ML Model Weights (GGUF, ONNX, PyTorch Binaries)
+#    Lightweight JSON model parameters and Ed25519 signature manifests stay
+#    tracked so the shipped models remain verifiable.
+# -----------------------------------------------------------------------------
+*.gguf
+*.onnx
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+*.h5
+*.safetensors
+saved_models/llm_gguf/
+saved_models/embeddings/
+saved_models/candidate_baselines/
+
+!saved_models/model_g1_congestion_v4_1.json
+!saved_models/model_g2_routing_v4_1.json
+!saved_models/model_g3_tunnel_v4_1.json
+!saved_models/model_g4_policy_v4_1.json
+!saved_models/model_signatures.json
+!saved_models/*.sig
+
+# -----------------------------------------------------------------------------
+# 5. Generated Telemetry Datasets, Parquet Partitions & Benchmark Exports
+# -----------------------------------------------------------------------------
+*.parquet
+datasets/**/*.csv
+datasets/**/*.parquet
+benchmarks/**/*.csv
+!datasets/dataset_manifest.json
+!knowledge_base/verified_incidents/accepted_incidents.jsonl
+!knowledge_base/runbooks/*.md
+datasets/parquet/
+phase3-models/acp_logs/*.json
+phase3-models/dataset_large.csv
+
+# -----------------------------------------------------------------------------
+# 6. Runtime Policy Overrides & Ephemeral Signed Compliance Outputs
+# -----------------------------------------------------------------------------
+compliance_*.json
+airgap_compliance_report_*.json
+
+# -----------------------------------------------------------------------------
+# 7. Containerlab, FRRouting & Network Emulation Runtime Artifacts
+# -----------------------------------------------------------------------------
+clab-*/
+*.clab.yml.bak
+*.pcap
+*.pcapng
+
+# -----------------------------------------------------------------------------
+# 8. Airlock Packaging Bundles & OS / IDE Cruft
+# -----------------------------------------------------------------------------
+*.tar.zst
+*.tar.gz
+*.tgz
+*.zip
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
