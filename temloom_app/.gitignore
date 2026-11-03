@@ -1,5 +1,5 @@
 # =============================================================================
-# TEMLOOM v4.1 — Git ignore rules
+# TEMLOOM v4.1 â€” Git ignore rules
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -51,6 +51,17 @@ ENV/
 env/
 env.bak/
 venv.bak/
+
+# Pip artifacts
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node.js (in case frontend dependencies are added)
+node_modules/
+
+# Docker runtime overrides
+docker-compose.override.yml
+.docker/
 
 # Test, linter & type-checker caches
 .pytest_cache/
