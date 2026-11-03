@@ -1,0 +1,41 @@
+# TEMLOOM v4.1 — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework & server
+fastapi==0.121.1
+uvicorn==0.38.0
+starlette==0.49.3
+python-multipart==0.0.20
+jinja2==3.1.6
+sse-starlette==3.0.3
+
+# HTTP client
+httpx==0.28.1
+httpx-sse==0.4.3
+
+# Data validation
+pydantic==2.14.2
+pydantic-settings==2.11.0
+
+# ML & numerics
+numpy==2.3.4
+scipy==1.18.1
+scikit-learn==1.9.1
+networkx==3.6.1
+
+# ONNX inference (for bge-small embeddings)
+onnx==1.22.0
+onnxruntime==1.27.0
+
+# RAG / vector DB
+chromadb==1.5.9
+sentence-transformers==6.2.0
+
+# PyTorch (CPU) — required by sentence-transformers
+torch==2.12.1
+torchvision==0.27.1
+transformers==5.14.1
+
+# ORM (optional PostgreSQL support)
+sqlalchemy==2.0.44
+
