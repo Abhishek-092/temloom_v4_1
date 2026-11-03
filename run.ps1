@@ -1,4 +1,4 @@
-# TEMLOOM v4.1 — Windows PowerShell Launcher
+# TEMLOOM v4.1 - Windows PowerShell Launcher
 # Usage:
 #   .\run.ps1              # Start with synthetic simulator (default)
 #   .\run.ps1 stop         # Kill a running server on port 8080
@@ -39,7 +39,7 @@ switch ($Command) {
     default {
         Write-Host ""
         Write-Host "========================================================"
-        Write-Host "  TEMLOOM v4.1 — Air-Gapped Predictive NOC Platform"
+        Write-Host "  TEMLOOM v4.1 - Air-Gapped Predictive NOC Platform"
         Write-Host "========================================================"
         Write-Host "  Starting FastAPI server on http://127.0.0.1:8080"
         Write-Host "  Press Ctrl+C to stop."
@@ -47,4 +47,3 @@ switch ($Command) {
         python -m uvicorn temloom.api_ui.app:app --host 127.0.0.1 --port 8080 --log-level info
     }
 }
-
