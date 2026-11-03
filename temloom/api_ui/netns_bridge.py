@@ -2,7 +2,7 @@
 # =============================================================================
 # netns_bridge.py — loopback-only ingress bridge for './run.sh --clab --airgap'
 #
-# In that mode the Aether stack runs inside a zero-egress network namespace
+# In that mode the TEMLOOM stack runs inside a zero-egress network namespace
 # (loopback only), so the host browser cannot reach the namespaced 127.0.0.1:8080
 # directly. Unix-domain sockets are filesystem objects and cross network
 # namespaces, so we chain:
