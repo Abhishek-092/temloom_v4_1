@@ -1,0 +1,6 @@
+{
+  "REROUTE_BRANCH": {
+    "min_conf": 0.82,
+    "auto_execute": true
+  }
+}
