@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 
 import sys
-sys.path.insert(0, "/working_dir/c_aada847172fecc2e/aegisnet_experiments")
+sys.path.insert(0, "/working_dir/c_aada847172fecc2e/temloom_experiments")
 from simulator import NetworkTelemetrySimulator
 from models import extract_causal_features, fast_theil_sen
 
@@ -263,7 +263,7 @@ def run_scenario_d_policy_drift_validation() -> dict:
 
 
 def main():
-    sim = NetworkTelemetrySimulator("/working_dir/c_aada847172fecc2e/aegisnet_experiments/scenarios.yaml")
+    sim = NetworkTelemetrySimulator("/working_dir/c_aada847172fecc2e/temloom_experiments/scenarios.yaml")
     scen_keys = list(sim.config["scenarios"].keys())
     train_runs = [sim.generate_scenario(k, s) for s in [101, 102, 103, 104, 105] for k in scen_keys]
     test_runs = [sim.generate_scenario(k, s) for s in range(301, 311) for k in scen_keys]
@@ -291,7 +291,7 @@ def main():
 
     scen_d = run_scenario_d_policy_drift_validation()
     out = {"additional_model_zoo_120_runs": results_zoo, "scenario_d_validation": scen_d}
-    with open("/working_dir/c_aada847172fecc2e/aegisnet_experiments/extended_model_zoo_results.json", "w") as f:
+    with open("/working_dir/c_aada847172fecc2e/temloom_experiments/extended_model_zoo_results.json", "w") as f:
         json.dump(out, f, indent=2)
 
     print("=== EXTENDED MODEL ZOO RESULTS (120 HELD-OUT RUNS) ===")
