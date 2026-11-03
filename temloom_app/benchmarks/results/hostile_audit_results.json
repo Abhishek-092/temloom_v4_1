@@ -1,0 +1,214 @@
+{
+  "statistical_significance_test_E_vs_B_on_original": {
+    "n_incident_runs": 70,
+    "model_b_mean_lead_time_min": 7.193,
+    "model_e_mean_lead_time_min": 6.829,
+    "wilcoxon_lead_time_pvalue": 0.509957,
+    "model_b_total_false_alarms": 44,
+    "model_e_total_false_alarms": 28,
+    "wilcoxon_false_alarm_pvalue": 0.021253
+  },
+  "coverage_padding_audit": {
+    "Model B: EWMA + Theil-Sen Trend": {
+      "padded_2mbps_coverage": 0.362,
+      "strict_unpadded_coverage": 0.191,
+      "mean_interval_width_mbps": 6.044
+    },
+    "Model C: Multivariate GBDT": {
+      "padded_2mbps_coverage": 0.548,
+      "strict_unpadded_coverage": 0.444,
+      "mean_interval_width_mbps": 9.0
+    },
+    "Model D: Page-Hinkley CUSUM + Holt State-Space": {
+      "padded_2mbps_coverage": 0.397,
+      "strict_unpadded_coverage": 0.28,
+      "mean_interval_width_mbps": 7.6
+    },
+    "Model E: Hybrid TEMLOOM (Theil-Sen/CUSUM + GBDT + Frozen Conformal)": {
+      "padded_2mbps_coverage": 0.658,
+      "strict_unpadded_coverage": 0.588,
+      "mean_interval_width_mbps": 17.344
+    },
+    "Model F: Auditor-Corrected Dual-Horizon + Bounded-Freeze Conformal": {
+      "padded_2mbps_coverage": 0.599,
+      "strict_unpadded_coverage": 0.512,
+      "mean_interval_width_mbps": 14.108
+    }
+  },
+  "adversarial_benchmark_summary": [
+    {
+      "model": "Model A: Static Threshold + Hysteresis",
+      "incident_recall": 1.0,
+      "missed_incidents": 0,
+      "total_incidents": 40,
+      "false_alarms_total": 93,
+      "false_alarms_per_hour": 1.7438,
+      "precision": 0.3008,
+      "median_lead_time_min": 3.25,
+      "iqr25_lead_time_min": 1.312,
+      "iqr75_lead_time_min": 3.562,
+      "mean_lead_time_min": 2.712,
+      "median_detection_delay_min": 11.375,
+      "ttv_mae_min": 5.976,
+      "empirical_interval_coverage": NaN,
+      "mean_interval_width_mbps": NaN,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.725,
+      "inference_latency_ms_per_step": 0.1355,
+      "peak_memory_kb": 624.86
+    },
+    {
+      "model": "Model B: EWMA + Theil-Sen Trend",
+      "incident_recall": 1.0,
+      "missed_incidents": 0,
+      "total_incidents": 40,
+      "false_alarms_total": 45,
+      "false_alarms_per_hour": 0.8438,
+      "precision": 0.4706,
+      "median_lead_time_min": 4.5,
+      "iqr25_lead_time_min": 2.438,
+      "iqr75_lead_time_min": 7.125,
+      "mean_lead_time_min": 5.35,
+      "median_detection_delay_min": 6.125,
+      "ttv_mae_min": 2.286,
+      "empirical_interval_coverage": 0.118,
+      "mean_interval_width_mbps": 7.281,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.85,
+      "inference_latency_ms_per_step": 3.6576,
+      "peak_memory_kb": 617.2
+    },
+    {
+      "model": "Model C: Multivariate GBDT",
+      "incident_recall": 0.5,
+      "missed_incidents": 20,
+      "total_incidents": 40,
+      "false_alarms_total": 53,
+      "false_alarms_per_hour": 0.9938,
+      "precision": 0.274,
+      "median_lead_time_min": 8.125,
+      "iqr25_lead_time_min": 4.25,
+      "iqr75_lead_time_min": 12.0,
+      "mean_lead_time_min": 8.075,
+      "median_detection_delay_min": 10.0,
+      "ttv_mae_min": 5.178,
+      "empirical_interval_coverage": 0.298,
+      "mean_interval_width_mbps": 9.0,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.5,
+      "inference_latency_ms_per_step": 1.7916,
+      "peak_memory_kb": 741.04
+    },
+    {
+      "model": "Model D: Page-Hinkley CUSUM + Holt State-Space",
+      "incident_recall": 1.0,
+      "missed_incidents": 0,
+      "total_incidents": 40,
+      "false_alarms_total": 113,
+      "false_alarms_per_hour": 2.1188,
+      "precision": 0.2614,
+      "median_lead_time_min": 5.875,
+      "iqr25_lead_time_min": 3.688,
+      "iqr75_lead_time_min": 9.125,
+      "mean_lead_time_min": 7.062,
+      "median_detection_delay_min": 3.875,
+      "ttv_mae_min": 1.639,
+      "empirical_interval_coverage": 0.198,
+      "mean_interval_width_mbps": 7.6,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.975,
+      "inference_latency_ms_per_step": 0.1496,
+      "peak_memory_kb": 340.94
+    },
+    {
+      "model": "Model E: Hybrid TEMLOOM (Theil-Sen/CUSUM + GBDT + Frozen Conformal)",
+      "incident_recall": 0.575,
+      "missed_incidents": 17,
+      "total_incidents": 40,
+      "false_alarms_total": 57,
+      "false_alarms_per_hour": 1.0688,
+      "precision": 0.2875,
+      "median_lead_time_min": 2.5,
+      "iqr25_lead_time_min": 0.5,
+      "iqr75_lead_time_min": 3.125,
+      "mean_lead_time_min": 2.011,
+      "median_detection_delay_min": 13.0,
+      "ttv_mae_min": 3.558,
+      "empirical_interval_coverage": 0.387,
+      "mean_interval_width_mbps": 16.008,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.35,
+      "inference_latency_ms_per_step": 2.3479,
+      "peak_memory_kb": 422.32
+    },
+    {
+      "model": "Model F: Auditor-Corrected Dual-Horizon + Bounded-Freeze Conformal",
+      "incident_recall": 1.0,
+      "missed_incidents": 0,
+      "total_incidents": 40,
+      "false_alarms_total": 115,
+      "false_alarms_per_hour": 2.1563,
+      "precision": 0.2581,
+      "median_lead_time_min": 5.375,
+      "iqr25_lead_time_min": 3.5,
+      "iqr75_lead_time_min": 7.375,
+      "mean_lead_time_min": 5.881,
+      "median_detection_delay_min": 6.0,
+      "ttv_mae_min": 1.596,
+      "empirical_interval_coverage": 0.371,
+      "mean_interval_width_mbps": 15.365,
+      "robustness_score": 0.0,
+      "actionable_usefulness_rate": 0.975,
+      "inference_latency_ms_per_step": 0.18,
+      "peak_memory_kb": 368.69
+    }
+  ],
+  "model_f_on_original_test_set": {
+    "model": "Model F: Auditor-Corrected Dual-Horizon + Bounded-Freeze Conformal",
+    "incident_recall": 1.0,
+    "missed_incidents": 0,
+    "total_incidents": 70,
+    "false_alarms_total": 57,
+    "false_alarms_per_hour": 0.7125,
+    "precision": 0.5512,
+    "median_lead_time_min": 8.75,
+    "iqr25_lead_time_min": 3.0,
+    "iqr75_lead_time_min": 10.938,
+    "mean_lead_time_min": 7.611,
+    "median_detection_delay_min": 7.25,
+    "ttv_mae_min": 1.889,
+    "empirical_interval_coverage": 0.512,
+    "mean_interval_width_mbps": 14.108,
+    "robustness_score": 0.601,
+    "actionable_usefulness_rate": 0.8143,
+    "inference_latency_ms_per_step": 0.18,
+    "peak_memory_kb": 530.05
+  },
+  "rca_fairness_and_ambiguity_audit": {
+    "original_reported_mode3_top1": 1.0,
+    "defect_identified": "models.py lines 601-604 hardcoded `if mode != 'Mode_3_Hidden_Carrier_P_Routers_RFC4364'` and line 557 set empty dependencies `[]` for `carrier_srlg` in the Single-Root baseline.",
+    "blind_fair_mode3_top1_without_hub_ telemetry": 0.485,
+    "equivalence_class_ambiguity_size": 2,
+    "indistinguishable_candidates": [
+      "carrier_srlg:transport-A-hub1",
+      "ce_wan_iface:ce-hub1:wan0 (if hub SNMP poll lags overlay BFD)"
+    ],
+    "corrected_ambiguity_set_recall": 1.0
+  },
+  "remediation_toctou_and_partial_exec_audit": {
+    "toctou_unserialized_dual_shift": {
+      "branch1_individual_projected_util_pct": 50.0,
+      "branch2_individual_projected_util_pct": 53.0,
+      "both_approved_by_stateless_engine": true,
+      "actual_combined_post_shift_util_pct": 85.0,
+      "breaches_80pct_safety_ceiling": true,
+      "fix_required": "Atomic Reservation Lock (`reserved_inflight_mbps`) in PostgreSQL transaction"
+    },
+    "partial_multi_router_execution": {
+      "forward_router_ce_br2_status": "COMMITTED",
+      "return_router_ce_hub1_status": "SSH_TIMEOUT_ABORTED",
+      "resulting_state_without_2pc": "ASYMMETRIC_ROUTING_STATEFUL_FIREWALL_DROP",
+      "fix_required": "Coordinated Two-Phase CommitConfirmed (`commit confirmed 1`) across paired endpoints"
+    }
+  }
+}
