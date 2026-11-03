@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 temloom/security/model_integrity.py — Ed25519 Model Weight & Artifact Signing & Verification
-(Adopted from Project Aether AETH-7.1 and upgraded for TEMLOOM Models G1-G4, ONNX & GGUF).
+(TEMLOOM Models G1-G4, ONNX & GGUF Integrity Attestation).
 """
 
 import os
