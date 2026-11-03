@@ -1,0 +1,9 @@
+{
+  "model_identifier": "TEMLOOM_Model_G2_Routing",
+  "domain": "BGP_OSPF_ROUTING_INSTABILITY",
+  "version": "4.1.0",
+  "hawkes_decay_beta": 0.55,
+  "rfc2439_suppress_threshold": 2000.0,
+  "min_recurrence_ticks": 2,
+  "mean_inference_latency_ms": 0.03
+}
