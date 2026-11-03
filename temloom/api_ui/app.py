@@ -421,12 +421,14 @@ def get_bootstrap():
     }
 
 
+@app.get("/api/incidents")
 @app.get("/api/v1/incidents")
 @app.get("/api/acps")
 def list_incidents(limit: int = 50):
     return [ACTIVE_INCIDENTS[iid] for iid in reversed(INCIDENT_ORDER[-limit:])]
 
 
+@app.get("/api/incidents/{incident_id}")
 @app.get("/api/explain/{acp_id}")
 def explain_incident_endpoint(acp_id: str):
     inc = ACTIVE_INCIDENTS.get(acp_id)
@@ -488,6 +490,7 @@ def run_scenario(req: ScenarioRunReq):
     return {"status": "ok", "scenario": sid, "incident_id": inc["incident_id"]}
 
 
+@app.post("/api/remediation/execute")
 @app.post("/api/execute-action")
 @app.post("/api/v1/remediation/{incident_id}/execute-2pc")
 def execute_2pc_endpoint(req: Optional[ExecuteActionReq] = None, incident_id: Optional[str] = None):
@@ -534,6 +537,7 @@ def execute_2pc_endpoint(req: Optional[ExecuteActionReq] = None, incident_id: Op
     }
 
 
+@app.post("/api/remediation/reject")
 @app.post("/api/reject-action")
 def reject_action_endpoint(req: Dict[str, Any]):
     inc_id = req.get("acp_id") or req.get("incident_id")
@@ -674,36 +678,13 @@ def get_tunnel_health_endpoint():
     return rca_ranker.clonal_engine.get_tunnel_health()
 
 
+@app.post("/api/copilot/ask")
 @app.post("/api/nlq")
 @app.post("/api/v1/copilot/nlq")
 def nlq_query_endpoint(req: NlqReq):
-    q_lower = req.question.lower()
+    q_str = req.question or req.query or "status"
     latest_inc = ACTIVE_INCIDENTS[INCIDENT_ORDER[-1]] if INCIDENT_ORDER else None
-    
-    # Generate human, conversational replies
-    if "what fails" in q_lower or "what is failing" in q_lower or "status" in q_lower:
-        if latest_inc:
-            ans = f"**Current Prediction:** {latest_inc.get('q1')}\n\n" \
-                  f"**Impact Window:** Estimated lead time is **{latest_inc.get('ttf', 390) / 60:.1f} minutes** before SLA degradation occurs.\n" \
-                  f"**Affected Segment:** {', '.join(latest_inc.get('paths_impacted', ['core:mpls:link:mpls-link-mab-1']))}.\n\n" \
-                  f"To inspect the recommended fix, ask *'How do I fix this?'* or open the Overview panel."
-        else:
-            ans = "All network systems are currently operating within nominal SLA parameters. No imminent failures predicted."
-        return {"answer": ans, "session_id": req.session_id, "state": "ANSWER"}
-        
-    if "how do i fix" in q_lower or "how to fix" in q_lower or "remediat" in q_lower:
-        if latest_inc:
-            action = latest_inc.get("action", "PB-STEER-BULK-AF21")
-            ans = f"**Recommended Action:** `{action}`\n\n" \
-                  f"1. Divert non-critical bulk flows away from the congested core link to the backup tunnel.\n" \
-                  f"2. Pre-change verification confirmed that the backup path has **72% available headroom**.\n" \
-                  f"3. Apply this change safely using the **Approve** button on the Overview card or Incident modal. Changes will automatically roll back if post-change health drops."
-        else:
-            ans = "No corrective remediation is needed at this time."
-        return {"answer": ans, "session_id": req.session_id, "state": "ANSWER"}
-
-    # Standard NLQ engine query
-    return nlq_engine.ask(req.question, session_id=req.session_id)
+    return nlq_engine.ask(q_str, session_id=req.session_id, active_incident=latest_inc)
 
 
 @app.post("/api/nlq/reset")
