@@ -1,0 +1,87 @@
+{
+  "domain_b_routing_instability_60_runs": [
+    {
+      "model": "Baseline R-A: Static Flap/SPF Threshold",
+      "recall": 1.0,
+      "false_alarms_total": 0,
+      "false_alarms_per_hour": 0.0,
+      "precision": 1.0,
+      "median_lead_time_min": 1.0,
+      "ttv_mae_min": 1.269,
+      "latency_ms_per_step": 0.0136
+    },
+    {
+      "model": "Baseline R-B: Rolling EWMA Churn Rate",
+      "recall": 0.25,
+      "false_alarms_total": 10,
+      "false_alarms_per_hour": 0.25,
+      "precision": 0.5,
+      "median_lead_time_min": 6.375,
+      "ttv_mae_min": 3.25,
+      "latency_ms_per_step": 0.0119
+    },
+    {
+      "model": "TEMLOOM Model G2: Hawkes Self-Exciting Intensity + CUSUM Asymmetry Engine",
+      "recall": 1.0,
+      "false_alarms_total": 0,
+      "false_alarms_per_hour": 0.0,
+      "precision": 1.0,
+      "median_lead_time_min": 5.0,
+      "ttv_mae_min": 3.059,
+      "latency_ms_per_step": 0.0303
+    }
+  ],
+  "domain_c_tunnel_degradation_60_runs": [
+    {
+      "model": "Baseline T-A: Static Jitter/Loss/DPD Threshold",
+      "recall": 0.75,
+      "false_alarms_total": 10,
+      "false_alarms_per_hour": 0.25,
+      "precision": 0.75,
+      "median_lead_time_min": 1.5,
+      "ttv_mae_min": 0.692,
+      "latency_ms_per_step": 0.012
+    },
+    {
+      "model": "Baseline T-B: Single-Metric Jitter EWMA",
+      "recall": 0.5,
+      "false_alarms_total": 10,
+      "false_alarms_per_hour": 0.25,
+      "precision": 0.6667,
+      "median_lead_time_min": 4.875,
+      "ttv_mae_min": 2.736,
+      "latency_ms_per_step": 0.0089
+    },
+    {
+      "model": "TEMLOOM Model G3: Multivariate Tunnel & IKEv2 Rekey Hazard Engine",
+      "recall": 0.975,
+      "false_alarms_total": 10,
+      "false_alarms_per_hour": 0.25,
+      "precision": 0.7959,
+      "median_lead_time_min": 5.25,
+      "ttv_mae_min": 3.83,
+      "latency_ms_per_step": 0.0628
+    }
+  ],
+  "domain_d_hybrid_rag_30_queries": {
+    "BM25_Lexical_Only": {
+      "top1_accuracy": 0.8,
+      "recall_at_3": 0.9,
+      "mrr_at_5": 0.8606
+    },
+    "Dense_Vector_Only": {
+      "top1_accuracy": 0.9,
+      "recall_at_3": 0.9667,
+      "mrr_at_5": 0.9333
+    },
+    "Hybrid_RRF_BM25_Plus_Dense": {
+      "top1_accuracy": 0.8667,
+      "recall_at_3": 1.0,
+      "mrr_at_5": 0.9222
+    },
+    "mean_retrieval_latency_ms": 0.608,
+    "prompt_injection_payloads_tested": 10,
+    "prompt_injection_payloads_blocked": 10,
+    "prompt_injection_block_rate": 1.0
+  }
+}
