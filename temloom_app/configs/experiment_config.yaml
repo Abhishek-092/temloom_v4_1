@@ -1,0 +1,67 @@
+# TEMLOOM Master Experiment Configuration
+experiment_id: "TEMLOOM-EXP-2026-10"
+environment:
+  python_version: "3.11.2"
+  platform: "Linux-4.19.0-gvisor-x86_64"
+  numpy_version: "2.1.3"
+  scipy_version: "1.15.2"
+  pandas_version: "2.2.3"
+  execution_mode: "executable_python_telemetry_and_control_plane_simulation"
+  unavailable_hardware_or_daemons:
+    - "containerlab / docker (unprivileged sandbox VM without container daemon)"
+    - "vtysh / FRRouting live packet daemon"
+    - "batfish JVM container (replaced in safety unit tests by deterministic control-plane & reachability verifier)"
+    - "llama-server binary (evaluated via deterministic vs retrieval vs constrained-token synthesizer benchmark)"
+
+splits_and_leakage_control:
+  split_method: "complete_scenario_run_isolation"
+  train_seeds: [101, 102, 103, 104, 105]          # 5 seeds x 12 scenarios = 60 runs (720 min / 2,880 steps)
+  val_seeds: [201, 202, 203, 204, 205]            # 5 seeds x 12 scenarios = 60 runs (threshold & hyperparameter tuning ONLY)
+  held_out_test_seeds: [301, 302, 303, 304, 305, 306, 307, 308, 309, 310] # 10 seeds x 12 scenarios = 120 runs (FINAL EVALUATION ONLY)
+
+operational_acceptance_criteria:
+  min_incident_recall: 0.85                       # Must warn on >= 85% of true SLA-violating scenarios
+  max_false_alarms_per_hour: 0.35                 # Must emit <= 0.35 false alarms per operating hour on non-violating / pre-event windows
+  min_actionable_lead_time_min: 2.0               # Warnings firing < 2.0 min before breach count as late detection, not actionable prediction
+  target_conformal_coverage: 0.90                 # Nominal 90% prediction interval coverage (alpha = 0.10)
+  max_inference_latency_ms_per_step: 5.0          # Must execute in < 5.0 ms per step on 2-core CPU
+
+models:
+  Model_A_Operational_Baseline:
+    util_warn_mbps: 85.0
+    util_clear_mbps: 80.0
+    latency_warn_ms: 22.0
+    loss_warn_pct: 0.5
+    drops_warn_pps: 10.0
+    hysteresis_steps: 3
+
+  Model_B_EWMA_TheilSen:
+    ewma_lambda: 0.25
+    window_steps: 24                              # 6.0 minutes (24 x 15s) sliding window
+    horizon_min: 12.0
+    hysteresis_steps: 2
+
+  Model_C_Multivariate_GBDT:
+    n_estimators: 45
+    max_depth: 3
+    learning_rate: 0.12
+    min_samples_leaf: 15
+    horizon_min: 12.0
+    prob_threshold_tuned_on_val: 0.52
+
+  Model_D_CUSUM_Holt:
+    holt_alpha: 0.25
+    holt_beta: 0.12
+    cusum_k_sigma: 0.50
+    cusum_h_sigma: 4.50
+    horizon_min: 12.0
+
+  Model_E_Hybrid_Regime_Conformal:
+    ewma_lambda: 0.25
+    theilsen_window_steps: 24
+    cusum_h_sigma: 4.20
+    conformal_alpha: 0.10
+    conformal_decay_rho: 0.985
+    freeze_pvalue_gate: 0.03
+    gbdt_veto_benign_prob: 0.38
+    horizon_min: 12.0
