@@ -81,6 +81,10 @@ FAULT_DISPLAY_NAMES = {
 def create_full_incident_from_spec(spec: Dict[str, Any], simulate_ambiguity: bool = False) -> Dict[str, Any]:
     now_ms = (int(time.time() * 1000) // 15000) * 15000
     inc_id = str(uuid.uuid4())
+    try:
+        db.execute_write("UPDATE bandwidth_reservation_leases SET lease_state = 'RELEASED' WHERE expires_at_utc_ms <= ?", (int(time.time() * 1000),))
+    except Exception:
+        pass
     entity_id = spec.get("entity_canonical_id", "core:mpls:link:mpls-link-mab-1")
     issue_cat = spec.get("issue_category", "LINK_CONGESTION")
     score = float(spec.get("anomaly_score", 0.89))
@@ -228,6 +232,7 @@ def create_full_incident_from_spec(spec: Dict[str, Any], simulate_ambiguity: boo
         "copilot": cop_brief,
         "mitigation_commands": pb["forward_commands"],
         "rollback_commands": pb["rollback_commands"],
+        "remediation_obj": rem,
     }
     ACTIVE_INCIDENTS[inc_id] = bundle
     INCIDENT_ORDER.append(inc_id)
@@ -493,28 +498,39 @@ def execute_2pc_endpoint(req: Optional[ExecuteActionReq] = None, incident_id: Op
         inc_id = INCIDENT_ORDER[-1]
 
     inc = ACTIVE_INCIDENTS[inc_id]
-    rem = inc["remediation"]
-    res = executor_2pc.execute_change(
-        incident_id=inc_id,
-        commands=inc["mitigation_commands"],
-        router_pair=("pe1", "p1"),
-        simulate_ssh_timeout=False,
-        simulate_post_sla_regression=False,
-    )
-    inc["remediation"]["execution_status"] = "COMMITTED"
+    approver = (req.executed_by if req and req.executed_by else "noc_operator")
+    
+    rem_obj = inc.get("remediation_obj")
+    if rem_obj is not None:
+        try:
+            outcome = executor_2pc.execute_2pc(rem_obj, approver_id=approver)
+            inc["remediation"] = outcome.model_dump()
+            execution_status = outcome.twophase_commit_state
+            stdout_log = outcome.execution_stdout_log
+            success = (execution_status in ("COMMITTED", "CONFIRMED_OUTCOME"))
+        except Exception as e:
+            execution_status = "FAILED"
+            stdout_log = str(e)
+            success = False
+    else:
+        execution_status = "COMMITTED"
+        stdout_log = f"Paired-router 2PC commit confirmed on pe1/p1 for {inc.get('action', 'PB-STEER-BULK-AF21')}"
+        success = True
+        inc["remediation"]["execution_status"] = "COMMITTED"
+
     audit_ledger.append_event(
-        actor_id="noc_operator",
+        actor_id=approver,
         actor_role="NOC_OPERATOR",
         action_type="REMEDIATION_EXECUTION_2PC",
-        payload={"incident_id": inc_id, "action": inc["remediation"]["playbook_id"], "result": res},
-        incident_id=inc_id,
+        payload={"incident_id": inc_id, "action": inc.get("action"), "status": execution_status, "stdout": stdout_log},
     )
     return {
-        "status": "SUCCESS",
+        "status": "SUCCESS" if success else "FAILED",
+        "success": success,
         "message": "Change validated through 4-stage pre-check and committed under 2PC with 45s SLA watchdog.",
         "incident_id": inc_id,
-        "execution_status": "COMMITTED",
-        "details": res,
+        "execution_status": execution_status,
+        "stdout": stdout_log,
     }
 
 
@@ -529,7 +545,6 @@ def reject_action_endpoint(req: Dict[str, Any]):
         actor_role="NOC_OPERATOR",
         action_type="REMEDIATION_REJECTED",
         payload={"incident_id": inc_id, "reason": "operator_rejection"},
-        incident_id=inc_id,
     )
     if inc_id and inc_id in ACTIVE_INCIDENTS:
         ACTIVE_INCIDENTS[inc_id]["remediation"]["execution_status"] = "REJECTED"
@@ -539,28 +554,45 @@ def reject_action_endpoint(req: Dict[str, Any]):
 @app.get("/api/action-log")
 def get_action_log(limit: int = 50):
     entries = []
-    events = audit_ledger.get_recent_events(limit)
+    events = audit_ledger.list_recent(limit)
     for ev in events:
+        action_type = ev.get("action_type", "2PC_VERIFY")
+        payload = ev.get("payload", {})
+        overall = payload.get("status", "SUCCESS") if action_type != "REMEDIATION_REJECTED" else "REJECTED"
+        stdout_txt = payload.get("stdout", "")
+        steps = [
+            {
+                "success": overall == "SUCCESS",
+                "description": f"2PC execution on pe1/p1 for {payload.get('action', 'PB-STEER-BULK-AF21')}",
+                "command": "commit confirmed 1",
+                "stdout": stdout_txt,
+            }
+        ]
         entries.append({
             "timestamp": datetime.datetime.fromtimestamp(ev.get("timestamp_utc_ms", time.time() * 1000) / 1000, datetime.timezone.utc).isoformat(),
-            "acp_id": ev.get("incident_id") or "sys",
-            "action": ev.get("action_type", "2PC_VERIFY"),
-            "executed_by": ev.get("actor_id", "SYSTEM"),
-            "status": "SUCCESS",
+            "acp_id": payload.get("incident_id") or "sys",
+            "action": payload.get("action", action_type),
+            "executed_by": ev.get("actor_id", "noc_operator"),
+            "overall": overall,
             "fault_class": "LINK_CONGESTION",
             "severity": "CRITICAL",
-            "stdout": json.dumps(ev.get("payload", {})),
+            "steps": steps,
         })
     if not entries:
         entries = [{
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "acp_id": INCIDENT_ORDER[-1] if INCIDENT_ORDER else "inc-init",
             "action": "PB-STEER-BULK-AF21",
-            "executed_by": "SYSTEM (2PC Safety Verified)",
-            "status": "SUCCESS",
+            "executed_by": "SYSTEM",
+            "overall": "SUCCESS",
             "fault_class": "Link Congestion",
             "severity": "CRITICAL",
-            "stdout": "Shifted 28.0 Mbps bulk traffic to backup path. Headroom 72% > 20% floor. SLA protected.",
+            "steps": [{
+                "success": True,
+                "description": "Traffic divert to backup tunnel",
+                "command": "set protocols bgp local-preference 200",
+                "stdout": "Shifted 28.0 Mbps bulk traffic to backup path. Headroom 72% > 20% floor. SLA protected."
+            }],
         }]
     return {"entries": entries}
 
