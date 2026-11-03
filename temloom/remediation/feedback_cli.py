@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 temloom/remediation/feedback_cli.py — Operator Accept/Reject Feedback Processor &
-Per-Class Empirical False-Positive Rate Tracker (Adopted from Project Aether AETH-7.7).
+Per-Class Empirical False-Positive Rate Tracker.
 """
 
 import argparse
