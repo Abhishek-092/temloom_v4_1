@@ -8,6 +8,7 @@ local / air-gapped execution) and PostgreSQL 16 + VictoriaMetrics in container d
 import os
 import json
 import sqlite3
+import tempfile
 import threading
 import time
 import uuid
@@ -15,7 +16,7 @@ from typing import Dict, Any, List, Optional, Tuple
 
 DEFAULT_DB_PATH = os.environ.get(
     "TEMLOOM_DB_PATH",
-    "/tmp/temloom_v4_1.db",
+    os.path.join(tempfile.gettempdir(), "temloom_v4_1.db"),
 )
 MIGRATION_001_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
