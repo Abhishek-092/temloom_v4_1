@@ -1,0 +1,13 @@
+{
+  "model_identifier": "TEMLOOM_Model_G1_Congestion",
+  "domain": "LINK_CONGESTION_LATENCY_QOS",
+  "version": "4.1.0",
+  "channels": [
+    "utilization_theil_sen_dual_window",
+    "rtt_decoupled_slope",
+    "qos_queue_drop_velocity"
+  ],
+  "cycle_damper_steps": 16,
+  "conformal_alpha": 0.1,
+  "mean_inference_latency_ms": 0.42
+}
