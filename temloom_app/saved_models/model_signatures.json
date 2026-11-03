@@ -1,0 +1,22 @@
+{
+  "model_g1_congestion_v4_1.json": {
+    "sha256": "8ba52edde1f44383bc7547f7376430dc019c29c4492712525bb6773c47bf4d0b",
+    "signature": "9108bde4eab74f3f9fd4bd1226304ef38e68372ad1c511decf8a2231f7c16517846bf5ad7793b8f4fec50d408262916b06368b041e950f1aea3f8f438d8b9e05",
+    "algorithm": "Ed25519"
+  },
+  "model_g2_routing_v4_1.json": {
+    "sha256": "f1a619e437cf36f25f95928d3fc34ea2f4031713ab25504ee4d26045541b5677",
+    "signature": "6d4f440ee560dd96f7cbffe10079e6e0f1aa4c8962c8d412be4caf98180c11c7b9769273b18d5beaeb5be2367201072ccecfb9e1908f2036928c6ed6e8e4860b",
+    "algorithm": "Ed25519"
+  },
+  "model_g3_tunnel_v4_1.json": {
+    "sha256": "5dc95ffb362c15ccdb8d675bf445713c8c46769bd073a3b3403495982f82c04e",
+    "signature": "cab173bca41221422a0029774dd2badf5f84a51af74755d56110168662ebc6f35c6889a1c4d7d7c4d9220799daa17993ae6fe88d66aa0b67fb6ebd1764293208",
+    "algorithm": "Ed25519"
+  },
+  "model_g4_policy_v4_1.json": {
+    "sha256": "9f419ad2dcbd6f4fb5fdca1c868dc98c538fef8602f9aed3ea92da1724ce493b",
+    "signature": "efbb46c5f022ce12da44ddaeac9fb58ba36ce7cafb3354876cce6eb16447f4a1c21263359dfddcaded2772195995c2d8fff3821ed9abd76bf8ae62ba00042004",
+    "algorithm": "Ed25519"
+  }
+}
