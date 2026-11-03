@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 temloom/remediation/playbooks.py — Parameterized Forward & Inverse Rollback CLI/NETCONF
-Remediation Playbooks (combining TEMLOOM 2PC stanzas & Project Aether node-specific commands).
+Remediation Playbooks (combining TEMLOOM 2PC stanzas).
 """
 
 from typing import Dict, Any, List
