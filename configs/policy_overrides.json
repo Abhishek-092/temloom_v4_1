@@ -2,5 +2,9 @@
   "REROUTE_BRANCH": {
     "min_conf": 0.82,
     "auto_execute": true
+  },
+  "QOS_SHAPE_QUEUE": {
+    "min_conf": 0.75,
+    "auto_execute": true
   }
 }
