@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Hostile Independent Technical Review & Adversarial Benchmark Suite for AegisNet.
+"""Hostile Independent Technical Review & Adversarial Benchmark Suite for TEMLOOM.
 
 Executes:
 1. Reproduction of the original held-out benchmark (Scenarios A-L across Models A-E) AND
    audit of the padded vs. unpadded conformal coverage metric bug.
 2. Adversarial Benchmark Suite (Scenarios ADV-1 through ADV-8, 10 seeds each = 80 runs per model)
-   specifically designed to break the assumptions of the proposed AegisNet architecture:
+   specifically designed to break the assumptions of the proposed TEMLOOM architecture:
    - ADV-1: Exponential / TCP-Incast Quadratic Congestion Cascade (breaks linear trend extrapolation)
    - ADV-2: Step-Plateau at 84 Mbps Below SLA (breaks sliding-window slope & CUSUM, causing 100% false alarms)
    - ADV-3: Covariate Shift on EF-Share (Congestion with ef_share=0.10, exposing hardcoded `ef_share <= 0.12` veto bug)
@@ -37,7 +37,7 @@ from models import (
     RobustStatisticalModel,
     MultivariateGBDTModel,
     CUSUMHoltModel,
-    HybridAegisModel,
+    HybridTemloomModel,
     RootCauseLocalizationBenchmark,
     extract_causal_features,
 )
@@ -50,7 +50,7 @@ def generate_adversarial_scenario(
     dt_min: float = 0.25,
     n_steps: int = 160,
 ) -> Dict[str, Any]:
-    """Generates independent adversarial telemetry scenarios (ADV-1 to ADV-8) to challenge AegisNet."""
+    """Generates independent adversarial telemetry scenarios (ADV-1 to ADV-8) to challenge TEMLOOM."""
     rng = np.random.default_rng(seed)
     t_min = np.arange(n_steps) * dt_min
     capacity = 100.0
@@ -410,7 +410,7 @@ def main() -> None:
     model_c = MultivariateGBDTModel(n_estimators=45, max_depth=3, learning_rate=0.12, prob_threshold=0.52)
     model_c.fit_on_scenarios(train_runs, dt_min=sim.dt_min)
     model_d = CUSUMHoltModel()
-    model_e = HybridAegisModel(gbdt_model=model_c, conformal_alpha=0.10, decay_rho=0.985, freeze_enabled=True)
+    model_e = HybridTemloomModel(gbdt_model=model_c, conformal_alpha=0.10, decay_rho=0.985, freeze_enabled=True)
     model_e.calibrate_on_validation(val_runs, dt_min=sim.dt_min)
     model_f = CorrectedDualHorizonModel()
 
