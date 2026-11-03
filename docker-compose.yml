@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.106.1
+    container_name: temloom-victoriametrics
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=90d"
+      - "--httpListenAddr=127.0.0.1:8428"
+    network_mode: "host"
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: temloom-postgres
+    environment:
+      POSTGRES_DB: temloom
+      POSTGRES_USER: temloom_core_rw
+      POSTGRES_PASSWORD: temloom_offline_enclave_secret
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
