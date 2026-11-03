@@ -1,0 +1,107 @@
+{
+  "dataset_version_id": "v4.1.0-sha256:e40cc46aead54f44",
+  "exported_at_utc_ms": 1793709650436,
+  "total_rows": 3,
+  "seed_splits": {
+    "train": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ],
+    "validation_calibration": [
+      201,
+      202,
+      203,
+      204,
+      205
+    ],
+    "held_out_test": [
+      301,
+      302,
+      303,
+      304,
+      305,
+      306,
+      307,
+      308,
+      309,
+      310
+    ],
+    "adversarial_unseen": [
+      401,
+      402,
+      403,
+      404,
+      405,
+      406,
+      407,
+      408,
+      409,
+      410
+    ]
+  },
+  "tables": {
+    "interface_telemetry": {
+      "file": "interface_telemetry.parquet",
+      "rows": 1,
+      "sha256": "dda52876809b89c3a41ecaed4615d4082782124ff5cf6f9576e92a3a2ac60ae2"
+    },
+    "latency_jitter_telemetry": {
+      "file": "latency_jitter_telemetry.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "qos_queue_telemetry": {
+      "file": "qos_queue_telemetry.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "bgp_protocol_events": {
+      "file": "bgp_protocol_events.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "ospf_protocol_events": {
+      "file": "ospf_protocol_events.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "syslog_events": {
+      "file": "syslog_events.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "netflow_ipfix_records": {
+      "file": "netflow_ipfix_records.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "ipsec_tunnel_telemetry": {
+      "file": "ipsec_tunnel_telemetry.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "sdwan_controller_events": {
+      "file": "sdwan_controller_events.parquet",
+      "rows": 1,
+      "sha256": "b566a3923fd2ce1281c66a8c2c6f2d3dee13920b4b278d3e2e9189fb9c2ae5af"
+    },
+    "config_policy_changes": {
+      "file": "config_policy_changes.parquet",
+      "rows": 1,
+      "sha256": "2e84f784c0762c0dabacd03b2270ebee38b1e0501b9ecdb99b3d6d7cdeb16126"
+    },
+    "injected_fault_records": {
+      "file": "injected_fault_records.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    },
+    "ground_truth_incident_labels": {
+      "file": "ground_truth_incident_labels.parquet",
+      "rows": 0,
+      "sha256": "8b6e33d47f4e1df33f587d9b1d420f756a6c705b8496e0912c223c5d83371df9"
+    }
+  }
+}
