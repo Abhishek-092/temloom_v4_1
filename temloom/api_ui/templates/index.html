@@ -169,6 +169,29 @@ header {
   gap: 8px;
   padding: 6px 0;
 }
+.sim-toast {
+  display: none;
+  position: fixed;
+  top: 55px;
+  right: 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--cyan);
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+  animation: slide-in 0.25s ease-out;
+}
+.sim-toast.active { display: flex; align-items: center; gap: 8px; }
+.sim-toast.error { border-color: var(--rose); box-shadow: 0 4px 20px rgba(244, 63, 94, 0.35); }
+@keyframes slide-in {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
 .sim-label {
   font-size: 11px;
   color: var(--text-dim);
@@ -780,11 +803,12 @@ pre.cli-block {
 
   <div class="sim-toolbar">
     <span class="sim-label">Simulate Event:</span>
-    <button class="btn-sim" onclick="triggerScenario(1)">1. Link Congestion</button>
-    <button class="btn-sim" onclick="triggerScenario(2)">2. BGP Flap</button>
-    <button class="btn-sim" onclick="triggerScenario(3)">3. IPSec Rekey</button>
-    <button class="btn-sim" onclick="triggerScenario(4)">4. Policy Drift</button>
+    <button class="btn-sim active" id="sim-btn-1" onclick="triggerScenario(1)">1. Link Congestion</button>
+    <button class="btn-sim" id="sim-btn-2" onclick="triggerScenario(2)">2. BGP Flap</button>
+    <button class="btn-sim" id="sim-btn-3" onclick="triggerScenario(3)">3. IPSec Rekey</button>
+    <button class="btn-sim" id="sim-btn-4" onclick="triggerScenario(4)">4. Policy Drift</button>
   </div>
+  <div class="sim-toast" id="sim-toast"></div>
 </div>
 
 <!-- Main Viewport -->
@@ -825,7 +849,7 @@ pre.cli-block {
             <div class="triad-text" id="q2-text">
               Physical telemetry signals indicate elevated risk: traffic volume reached 85.2 Mbps with queue buffer drops and latency drift.
             </div>
-            <div class="telemetry-row">
+            <div class="telemetry-row" id="telemetry-row-box">
               <div class="telemetry-item">
                 <div class="telemetry-name">Throughput</div>
                 <div class="telemetry-val" id="tel-util">85.2 Mbps</div>
@@ -854,7 +878,7 @@ pre.cli-block {
               Execute playbook PB-STEER-BULK-AF21 to shift 28 Mbps bulk data away from the congested link.
             </div>
             
-            <ul class="checklist">
+            <ul class="checklist" id="checklist-box">
               <li class="checklist-item">
                 <span class="check-icon">&#10003;</span>
                 <span>Headroom Check: Backup tunnel capacity has <strong>72% available headroom</strong>.</span>
@@ -1139,6 +1163,18 @@ async function refreshState() {
   }
 }
 
+// Toast Notification Helper
+function showToast(msg, isError = false) {
+  const t = document.getElementById('sim-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'sim-toast active' + (isError ? ' error' : '');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    t.className = 'sim-toast';
+  }, 3500);
+}
+
 // Update Situation Cards
 function updateSituationUI(inc) {
   if (!inc) return;
@@ -1153,15 +1189,43 @@ function updateSituationUI(inc) {
   document.getElementById('q2-headline').textContent = 'Telemetry Root Cause: ' + (inc.fault_class || 'Congestion');
   document.getElementById('q2-text').textContent = inc.q2 || inc.rationale || 'Elevated telemetry drift detected.';
   
-  if (inc.top_features && inc.top_features.length >= 3) {
-    document.getElementById('tel-util').textContent = inc.top_features[0].split(':')[1] || '85.2 Mbps';
-    document.getElementById('tel-drops').textContent = inc.top_features[2].split(':')[1] || '14.8 pps';
-    document.getElementById('tel-rtt').textContent = inc.top_features[1].split(':')[1] || '+12.4 ms';
+  // Telemetry Cards
+  const telRow = document.getElementById('telemetry-row-box');
+  if (telRow && inc.telemetry_cards && inc.telemetry_cards.length > 0) {
+    telRow.innerHTML = inc.telemetry_cards.map(t => `
+      <div class="telemetry-item">
+        <div class="telemetry-name">${t.name}</div>
+        <div class="telemetry-val">${t.val}</div>
+        <div class="telemetry-sub">${t.sub}</div>
+      </div>
+    `).join('');
+  } else if (inc.top_features && inc.top_features.length >= 3) {
+    telRow.innerHTML = inc.top_features.slice(0, 3).map(f => {
+      const parts = f.split(':');
+      return `
+        <div class="telemetry-item">
+          <div class="telemetry-name">${parts[0] || 'METRIC'}</div>
+          <div class="telemetry-val">${parts[1] || ''}</div>
+          <div class="telemetry-sub">Observed signal</div>
+        </div>
+      `;
+    }).join('');
   }
 
   // Q3
   document.getElementById('q3-headline').textContent = 'Action: ' + (inc.action || 'PB-STEER-BULK-AF21');
   document.getElementById('q3-text').textContent = inc.q3 || 'Verified mitigation ready for staged execution.';
+
+  // Checklist
+  const checkListEl = document.getElementById('checklist-box');
+  if (checkListEl && inc.checklist && inc.checklist.length > 0) {
+    checkListEl.innerHTML = inc.checklist.map(c => `
+      <li class="checklist-item">
+        <span class="check-icon">&#10003;</span>
+        <span>${c}</span>
+      </li>
+    `).join('');
+  }
 
   // Update Status Badge
   const badge = document.getElementById('situation-status-badge');
@@ -1186,6 +1250,8 @@ function updateSituationUI(inc) {
 
   // Render Topology
   renderTopology('cockpit-topo-svg');
+  renderTopology('full-topo-svg');
+  updateLinksTable(inc);
 }
 
 // Topology Renderer
@@ -1203,10 +1269,10 @@ function renderTopology(svgId) {
     { id: 'ce-branch2', label: 'Branch 2', role: 'Remote Site', x: 700, y: 300, type: 'branch' },
   ];
 
-  const links = [
+  const defaultLinks = [
     { u: 'ce-hub', v: 'pe1', role: 'access' },
     { u: 'ce-dc', v: 'pe2', role: 'access' },
-    { u: 'pe1', v: 'p1', role: 'core', hasRisk: (currentIncident && currentIncident.fault_class && currentIncident.fault_class.includes('Congestion')) },
+    { u: 'pe1', v: 'p1', role: 'core' },
     { u: 'pe2', v: 'p1', role: 'core' },
     { u: 'p1', v: 'ce-branch1', role: 'access' },
     { u: 'p1', v: 'ce-branch2', role: 'access' },
@@ -1214,25 +1280,35 @@ function renderTopology(svgId) {
     { u: 'ce-hub', v: 'ce-branch2', role: 'overlay', isOverlay: true },
   ];
 
+  const affectedNodes = (currentIncident && currentIncident.affected_nodes) ? currentIncident.affected_nodes : ['pe1', 'p1'];
+  const affectedLinks = (currentIncident && currentIncident.affected_links) ? currentIncident.affected_links : [];
+
   let html = '';
 
   // Draw links
-  links.forEach(l => {
+  defaultLinks.forEach(l => {
     const n1 = nodes.find(n => n.id === l.u);
     const n2 = nodes.find(n => n.id === l.v);
     if (!n1 || !n2) return;
 
     let cls = 'topo-link';
     if (l.isOverlay) cls += ' overlay';
-    else if (l.hasRisk) cls += ' critical';
-    else cls += ' active';
+    
+    // Check if link is affected by active incident
+    const matchAff = affectedLinks.find(al => (al.u === l.u && al.v === l.v) || (al.u === l.v && al.v === l.u));
+    if (matchAff) {
+      if (matchAff.status === 'critical') cls += ' critical';
+      else if (matchAff.status === 'warning') cls += ' warning';
+    } else {
+      cls += ' active';
+    }
 
     html += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${cls}"/>`;
   });
 
   // Draw nodes
   nodes.forEach(n => {
-    const isAlert = (currentIncident && currentIncident.paths_impacted && currentIncident.paths_impacted.some(p => p.includes(n.id)));
+    const isAlert = affectedNodes.includes(n.id);
     const alertCls = isAlert ? 'alert' : '';
     html += `
       <g class="node-group" onclick="inspectNode('${n.id}', '${n.label}')">
@@ -1244,6 +1320,122 @@ function renderTopology(svgId) {
   });
 
   svg.innerHTML = html;
+}
+
+function updateLinksTable(inc) {
+  const tbody = document.getElementById('links-table-body');
+  if (!tbody || !inc) return;
+
+  const fclass = inc.fault_class || '';
+  if (fclass.includes('BGP')) {
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>pe1 &rarr; ce-branch1</strong></td>
+        <td>BGP Peering (10.255.0.2)</td>
+        <td>FLAPPING</td>
+        <td>RFC 2439 Damping</td>
+        <td>Penalty: 1,850</td>
+        <td><span style="color:var(--rose);">FLAP CASCADE</span></td>
+      </tr>
+      <tr>
+        <td><strong>pe1 &rarr; p1</strong></td>
+        <td>Core MPLS</td>
+        <td>64.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>64.0%</td>
+        <td><span style="color:var(--amber);">ELEVATED JITTER</span></td>
+      </tr>
+      <tr>
+        <td><strong>ce-hub &rarr; ce-branch1</strong></td>
+        <td>IPSec Backup Tunnel</td>
+        <td>18.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>18.0%</td>
+        <td><span style="color:var(--cyan);">AVAILABLE (72% FREE)</span></td>
+      </tr>
+    `;
+  } else if (fclass.includes('Rekey')) {
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>ce-hub &rarr; ce-branch1</strong></td>
+        <td>IPSec Primary SA</td>
+        <td>61.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>12s Life Remaining</td>
+        <td><span style="color:var(--rose);">REKEY EXHAUSTION</span></td>
+      </tr>
+      <tr>
+        <td><strong>ce-hub &rarr; ce-branch2</strong></td>
+        <td>IPSec SA (Child)</td>
+        <td>24.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>Anti-Replay Drops</td>
+        <td><span style="color:var(--amber);">WARNING (22 pps)</span></td>
+      </tr>
+      <tr>
+        <td><strong>pe1 &rarr; p1</strong></td>
+        <td>Core MPLS</td>
+        <td>45.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>45.0%</td>
+        <td><span style="color:var(--emerald);">NOMINAL</span></td>
+      </tr>
+    `;
+  } else if (fclass.includes('Policy')) {
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>ce-hub (Controller) &rarr; pe1</strong></td>
+        <td>SD-WAN Control Plane</td>
+        <td>Hash 0x8A1B</td>
+        <td>Golden 0x3F9E</td>
+        <td>Desync: 180s</td>
+        <td><span style="color:var(--rose);">POLICY DRIFT</span></td>
+      </tr>
+      <tr>
+        <td><strong>ce-hub &rarr; ce-branch1</strong></td>
+        <td>Branch Policy</td>
+        <td>Local Override</td>
+        <td>Central Template</td>
+        <td>SLA: AF41 Dropped</td>
+        <td><span style="color:var(--amber);">DRIFT DETECTED</span></td>
+      </tr>
+      <tr>
+        <td><strong>pe1 &rarr; p1</strong></td>
+        <td>Core MPLS</td>
+        <td>76.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>76.0%</td>
+        <td><span style="color:var(--emerald);">NOMINAL</span></td>
+      </tr>
+    `;
+  } else {
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>ce-hub &rarr; pe1</strong></td>
+        <td>Access Link</td>
+        <td>42.5 Mbps</td>
+        <td>100 Mbps</td>
+        <td>42.5%</td>
+        <td><span style="color:var(--emerald);">NOMINAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>pe1 &rarr; p1</strong></td>
+        <td>Core MPLS</td>
+        <td>85.2 Mbps</td>
+        <td>100 Mbps</td>
+        <td>85.2%</td>
+        <td><span style="color:var(--rose);">CONGESTION RISK</span></td>
+      </tr>
+      <tr>
+        <td><strong>ce-hub &rarr; ce-branch1</strong></td>
+        <td>IPSec Backup Tunnel</td>
+        <td>18.0 Mbps</td>
+        <td>100 Mbps</td>
+        <td>18.0%</td>
+        <td><span style="color:var(--cyan);">AVAILABLE (72% FREE)</span></td>
+      </tr>
+    `;
+  }
 }
 
 function inspectNode(nodeId, label) {
@@ -1293,6 +1485,24 @@ async function rejectCurrentRemediation() {
 
 // Scenario Trigger
 async function triggerScenario(id) {
+  // Update button active state immediately
+  document.querySelectorAll('.btn-sim').forEach((b, i) => {
+    b.classList.remove('active');
+  });
+  const activeBtn = document.getElementById('sim-btn-' + id);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Switch to cockpit tab so the user visibly sees the live updates
+  switchTab('cockpit');
+
+  const names = {
+    1: '1. Link Congestion & Queue Saturation',
+    2: '2. BGP / OSPF Control-Plane Flap',
+    3: '3. IPSec Rekey & Anti-Replay Drop',
+    4: '4. SD-WAN Controller Policy Drift'
+  };
+  showToast('⚡ Injecting Scenario: ' + (names[id] || id) + '...');
+
   try {
     const res = await fetch('/api/scenarios/run', {
       method: 'POST',
@@ -1300,9 +1510,11 @@ async function triggerScenario(id) {
       body: JSON.stringify({ scenario: id })
     });
     const d = await res.json();
-    refreshState();
+    await refreshState();
+    showToast('✓ Active: ' + (names[id] || id));
   } catch (err) {
     console.error('Failed to trigger scenario:', err);
+    showToast('✕ Simulation error: ' + err, true);
   }
 }
 
