@@ -199,9 +199,98 @@ def create_full_incident_from_spec(spec: Dict[str, Any], simulate_ambiguity: boo
     cop_brief = copilot.explain_incident(ctx)
 
     display_name = FAULT_DISPLAY_NAMES.get(issue_cat, issue_cat)
-    friendly_q1 = f"Predicted {display_name} on {entity_id.split(':')[-1]} in ~{tti:.1f} minutes before SLA is impacted."
-    friendly_q2 = f"Physical telemetry signals indicate elevated risk: traffic volume reached {util_val:.1f} Mbps with queue buffer drops and latency drift."
-    friendly_q3 = f"Recommended action: Execute {pb_id}. Backup path has 72% available capacity, and automated pre-change safety checks passed."
+    short_target = entity_id.split(":")[-1]
+
+    if issue_cat == "BGP_FLAP_CASCADE":
+        friendly_q1 = f"Predicted BGP Control-Plane Flap on {short_target} in ~{tti:.1f} minutes before SLA is impacted."
+        friendly_q2 = "Repeated BGP session flapping on edge router pe1 is triggering RFC 2439 route damping penalty and routing churn."
+        friendly_q3 = f"Recommended action: Execute {pb_id} to demote flapping peer local-preference and stabilize core routing."
+        top_feats = [
+            "BGP Peer State: FLAPPING (Active/Idle)",
+            "Flap Penalty Score: 1850 (Damped)",
+            "Prefix Churn: 34 routes withdrawn",
+        ]
+        telemetry_cards = [
+            {"name": "BGP Peer State", "val": "FLAPPING", "sub": "Peer 10.255.0.2 (pe1)"},
+            {"name": "Damping Penalty", "val": "1,850", "sub": "Threshold: 2,000"},
+            {"name": "Route Churn", "val": "34 prefixes", "sub": "VoIP RTP routes withdrawn"},
+        ]
+        checklist = [
+            "Route Isolation: Flapping peer isolated without impacting established core sessions.",
+            "Convergence Check: AS-path prepending verified with zero packet loops or blackholes.",
+            "Watchdog: 2-Phase Commit staged with 45-second automated rollback safety.",
+        ]
+        affected_nodes = ["pe1", "ce-branch1"]
+        affected_links = [{"u": "pe1", "v": "p1", "status": "warning"}, {"u": "p1", "v": "ce-branch1", "status": "critical"}]
+
+    elif issue_cat == "TUNNEL_REKEY_EXHAUSTION":
+        friendly_q1 = f"Predicted IPSec Tunnel Rekey Exhaustion on {short_target} in ~{tti:.1f} minutes before SLA is impacted."
+        friendly_q2 = "StrongSwan IKEv2 Child-SA lifetime expiring in 15 seconds; anti-replay window overflow detected on branch tunnel."
+        friendly_q3 = f"Recommended action: Execute {pb_id} to initiate hitless Child-SA rekey and steer VoIP traffic to backup tunnel."
+        top_feats = [
+            "Child-SA Lifetime: 12 seconds remaining",
+            "Anti-Replay Discards: 22.4 packets/sec",
+            "Crypto Sequence: 0xFFFFFF80 (near overflow)",
+        ]
+        telemetry_cards = [
+            {"name": "Child-SA Lifetime", "val": "12 sec", "sub": "Hard expiration at 0s"},
+            {"name": "Anti-Replay Drops", "val": "22.4 pps", "sub": "Window size: 64 pkts"},
+            {"name": "Crypto Sequence", "val": "0xFFFFFF80", "sub": "Near 32-bit rollover"},
+        ]
+        checklist = [
+            "Key Exchange: Pre-shared key hash verified; hitless rekey initiated.",
+            "Failover Verification: Backup tunnel verified active with 0% packet loss.",
+            "Watchdog: 2-Phase Commit staged with 45-second automated rollback safety.",
+        ]
+        affected_nodes = ["ce-hub", "ce-branch1", "ce-branch2"]
+        affected_links = [
+            {"u": "ce-hub", "v": "ce-branch1", "status": "critical"},
+            {"u": "ce-hub", "v": "ce-branch2", "status": "warning"},
+        ]
+
+    elif issue_cat == "POLICY_DRIFT":
+        friendly_q1 = f"Predicted SD-WAN Controller Policy Drift on {short_target} in ~{tti:.1f} minutes before SLA is impacted."
+        friendly_q2 = "Local edge routing policy hash (0x8A1B) diverged from central controller golden configuration (0x3F9E)."
+        friendly_q3 = f"Recommended action: Execute {pb_id} to re-synchronize local edge rules with central orchestrator."
+        top_feats = [
+            "Policy Hash Drift: MISMATCH (0x8A1B != 0x3F9E)",
+            "SLA Violation: AF41 traffic dropped",
+            "Controller Sync: DESYNCHRONIZED (180s)",
+        ]
+        telemetry_cards = [
+            {"name": "Policy Hash", "val": "MISMATCH", "sub": "Local 0x8A1B != Golden 0x3F9E"},
+            {"name": "SLA Policy", "val": "VIOLATED", "sub": "AF41 bulk priority dropped"},
+            {"name": "Desync Time", "val": "180 sec", "sub": "Out-of-band edit detected"},
+        ]
+        checklist = [
+            "Hash Integrity: Golden configuration hash verified via SHA-256 ledger.",
+            "Rollback Validation: Local policy overrides safely reverted to central template.",
+            "Watchdog: 2-Phase Commit staged with 45-second automated rollback safety.",
+        ]
+        affected_nodes = ["ce-hub", "ce-branch1", "ce-branch2"]
+        affected_links = [{"u": "ce-hub", "v": "pe1", "status": "warning"}, {"u": "ce-hub", "v": "ce-branch1", "status": "warning"}]
+
+    else:  # LINK_CONGESTION
+        friendly_q1 = f"Predicted Link Congestion & Queue Saturation on {short_target} in ~{tti:.1f} minutes before SLA is impacted."
+        friendly_q2 = f"Physical telemetry signals indicate elevated risk: traffic volume reached {util_val:.1f} Mbps with queue buffer drops and latency drift."
+        friendly_q3 = f"Recommended action: Execute {pb_id}. Backup path has 72% available capacity, and automated pre-change safety checks passed."
+        top_feats = [
+            f"Traffic Utilization: {util_val:.1f} Mbps (threshold 80 Mbps)",
+            f"Round-Trip Delay: {spec.get('rtt_mean_ms', 21.6):.1f} ms (+12 ms drift)",
+            f"Queue Discards: {spec.get('queue_drops_pps', 14.8):.1f} packets/sec",
+        ]
+        telemetry_cards = [
+            {"name": "Throughput", "val": f"{util_val:.1f} Mbps", "sub": "Ceiling: 100 Mbps"},
+            {"name": "Buffer Discards", "val": f"{spec.get('queue_drops_pps', 14.8):.1f} pps", "sub": "Queue saturation"},
+            {"name": "Latency Drift", "val": f"+{spec.get('rtt_mean_ms', 21.6) - 9.5:.1f} ms", "sub": "Base: 9.5 ms"},
+        ]
+        checklist = [
+            "Headroom Check: Backup tunnel capacity has <strong>72% available headroom</strong>.",
+            "Safety Gate: Verified zero routing loops and zero AST command injection hazards.",
+            "Watchdog: 2-Phase Commit staged with 45-second automated rollback safety.",
+        ]
+        affected_nodes = ["pe1", "p1"]
+        affected_links = [{"u": "pe1", "v": "p1", "status": "critical"}]
 
     bundle = {
         "incident_id": inc_id,
@@ -220,11 +309,11 @@ def create_full_incident_from_spec(spec: Dict[str, Any], simulate_ambiguity: boo
         "q1": friendly_q1,
         "q2": friendly_q2,
         "q3": friendly_q3,
-        "top_features": [
-            f"Traffic Utilization: {util_val:.1f} Mbps (threshold 80 Mbps)",
-            f"Round-Trip Delay: {spec.get('rtt_mean_ms', 21.6):.1f} ms (+12 ms drift)",
-            f"Queue Discards: {spec.get('queue_drops_pps', 14.8):.1f} packets/sec",
-        ],
+        "top_features": top_feats,
+        "telemetry_cards": telemetry_cards,
+        "checklist": checklist,
+        "affected_nodes": affected_nodes,
+        "affected_links": affected_links,
         "paths_impacted": rca.affected_services,
         "prediction": pred.model_dump(),
         "rca": rca.model_dump(),
@@ -430,8 +519,9 @@ def list_incidents(limit: int = 50):
 
 @app.get("/api/incidents/{incident_id}")
 @app.get("/api/explain/{acp_id}")
-def explain_incident_endpoint(acp_id: str):
-    inc = ACTIVE_INCIDENTS.get(acp_id)
+def explain_incident_endpoint(incident_id: Optional[str] = None, acp_id: Optional[str] = None):
+    target_id = incident_id or acp_id
+    inc = ACTIVE_INCIDENTS.get(target_id) if target_id else None
     if not inc and INCIDENT_ORDER:
         inc = ACTIVE_INCIDENTS[INCIDENT_ORDER[-1]]
     if not inc:
